@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
+import LeftContainer from './LeftContainer';
+import RightContainer from './RightContainer';
 import './style.scss'; // Ensure this path is correct
 
 const Rating = () => {
-  const [dropdownVisible, setDropdownVisible] = useState({
-    left: false,
-    right: false
-  });
+  // Separate state for each container to manage their visibility independently
+  const [isLeftVisible, setIsLeftVisible] = useState(false);
+  const [isRightVisible, setIsRightVisible] = useState(false);
 
-  const [itemsToShow, setItemsToShow] = useState({
-    left: 3,
-    right: 3
-  });
-
+  // Sample profiles data
   const profiles = [
     { icon: 'profile.png', name: 'John Doe', comment: 'This is a comment by John Doe.' },
     { icon: 'profile.png', name: 'Jane Smith', comment: 'This is a comment by Jane Smith.' },
@@ -25,114 +22,18 @@ const Rating = () => {
     { icon: 'profile.png', name: 'Laura Adams', comment: 'This is a comment by Laura Adams.' }
   ];
 
-  const toggleDropdown = (position) => {
-    setDropdownVisible(prevState => ({
-      ...prevState,
-      [position]: !prevState[position]
-    }));
-  };
-
-  const handleClickOutside = (e) => {
-    if (!e.target.closest('.container')) {
-      setDropdownVisible({
-        left: false,
-        right: false
-      });
-    }
-  };
-
-  React.useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const loadMoreItems = (position) => {
-    setItemsToShow(prevState => ({
-      ...prevState,
-      [position]: prevState[position] + 3
-    }));
-  };
-
   return (
     <div className="two-containers">
-      <div className={`container left-container ${dropdownVisible.left ? 'expanded' : ''}`}>
-        <div className='rating-value'>30%</div>
-        <a
-          href='#'
-          className='comment-link'
-          onClick={(e) => {
-            e.preventDefault();
-            toggleDropdown('left');
-          }}
-        >
-          Comment
-        </a>
-        {dropdownVisible.left && (
-          <div className='dropdown-content'>
-            {profiles.slice(0, itemsToShow.left).map((profile, index) => (
-              <div key={index} className='dropdown-item'>
-                <img src={profile.icon} alt='Profile Icon' className='profile-icon' />
-                <div className='profile-info'>
-                  <span className='profile-name'>{profile.name}</span>
-                  <p className='profile-comment'>{profile.comment}</p>
-                </div>
-              </div>
-            ))}
-            {itemsToShow.left < profiles.length && (
-              <a
-                href='#'
-                className='load-more'
-                onClick={(e) => {
-                  e.preventDefault();
-                  loadMoreItems('left');
-                }}
-              >
-                Load More
-              </a>
-            )}
-          </div>
-        )}
-      </div>
-      <div className={`container right-container ${dropdownVisible.right ? 'expanded' : ''}`}>
-        <div className='rating-value'>80%</div>
-        <a
-          href='#'
-          className='comment-link'
-          onClick={(e) => {
-            e.preventDefault();
-            toggleDropdown('right');
-          }}
-        >
-          Comment
-        </a>
-        {dropdownVisible.right && (
-          <div className='dropdown-content'>
-            {profiles.slice(0, itemsToShow.right).map((profile, index) => (
-              <div key={index} className='dropdown-item'>
-                <img src={profile.icon} alt='Profile Icon' className='profile-icon' />
-                <div className='profile-info'>
-                  <span className='profile-name'>{profile.name}</span>
-                  <p className='profile-comment'>{profile.comment}</p>
-                </div>
-              </div>
-            ))}
-            {itemsToShow.right < profiles.length && (
-              <a
-                href='#'
-                className='load-more'
-                onClick={(e) => {
-                  e.preventDefault();
-                  loadMoreItems('right');
-                }}
-              >
-                Load More
-              </a>
-            )}
-          </div>
-        )}
-      </div>
+      <LeftContainer
+        profiles={profiles}
+        isVisible={isLeftVisible}
+        onToggle={() => setIsLeftVisible(!isLeftVisible)} // Toggle only the left container
+      />
+      <RightContainer
+        profiles={profiles}
+        isVisible={isRightVisible}
+        onToggle={() => setIsRightVisible(!isRightVisible)} // Toggle only the right container
+      />
     </div>
   );
 };
