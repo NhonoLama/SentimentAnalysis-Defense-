@@ -3,22 +3,23 @@ import { HiOutlineSearch } from "react-icons/hi";
 import { VscChromeClose } from "react-icons/vsc";
 import { useNavigate, useLocation } from "react-router-dom";
 
-import "./style.scss";
-
-import ContentWrapper from "../contentWrapper/ContentWrapper";
 import logo from "../../assets/cinemx.png";
+import LoginForm from "../loginsignup/LoginForm";
+import RegistrationForm from "../loginsignup/RegistrationForm";
+import "./style.scss";
+import ContentWrapper from "../contentWrapper/ContentWrapper";
 
 const Header = () => {
-  // States creation
   const [show, setShow] = useState("top");
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [query, setQuery] = useState("");
-  const [showSearch, setShowSearch] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+  const [showAuthForm, setShowAuthForm] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Scroll to top on page load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
@@ -49,7 +50,6 @@ const Header = () => {
   };
 
   const searchQueryHandler = (event) => {
-    // If user types search query and presses Enter, and search query is not empty, then navigate to search page
     if (event.key === 'Enter' && query.length > 0) {
       navigate(`/search/${query}`);
       setTimeout(() => {
@@ -58,14 +58,19 @@ const Header = () => {
     }
   };
 
+  const toggleAuthForm = () => {
+    setShowAuthForm(!showAuthForm);
+  };
+
   return (
     <header className={`header ${mobileMenu ? "mobileView" : ""} ${show}`}>
       <ContentWrapper>
         <div className="logo" onClick={() => navigate("/")}>
-          <img src={logo} alt="" />
+          <img src={logo} alt="CinemX" />
         </div>
         <ul className="menuItems">
           <li className="menuItem" onClick={() => navigate('/explore/movie')}>Movies</li>
+          <li className="menuItem" onClick={toggleAuthForm}>Login</li>
           <li className="menuItem">
             <HiOutlineSearch onClick={openSearch} />
           </li>
@@ -76,14 +81,34 @@ const Header = () => {
           {mobileMenu ? (<VscChromeClose onClick={() => setMobileMenu(false)} />) : null}
         </div>
       </ContentWrapper>
-      {showSearch && <div className="searchBar">
-        <ContentWrapper>
-          <div className="searchInput">
-            <input type="text" placeholder='Search for movie..' onChange={(e) => setQuery(e.target.value)} onKeyUp={searchQueryHandler} />
-            <VscChromeClose onClick={() => setShowSearch(false)} />
-          </div>
-        </ContentWrapper>
-      </div>}
+      
+      {showSearch && (
+        <div className="searchBar">
+          <ContentWrapper>
+            <div className="searchInput">
+              <input
+                type="text"
+                placeholder="Search for a movie..."
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyUp={searchQueryHandler}
+              />
+              <VscChromeClose onClick={() => setShowSearch(false)} />
+            </div>
+          </ContentWrapper>
+        </div>
+      )}
+
+      {showAuthForm && (
+        <div className="authModal">
+          {isLogin ? <LoginForm /> : <RegistrationForm />}
+          <button className="switchButton" onClick={() => setIsLogin(!isLogin)}>
+            {isLogin ? "Register" : "Switch to Login"}
+          </button>
+          <button className="closeButton" onClick={toggleAuthForm}>
+            Close
+          </button>
+        </div>
+      )}
     </header>
   );
 };

@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { fetchDataFromApi } from "./utils/api";
 import { useSelector, useDispatch } from "react-redux";
+import { fetchDataFromApi } from "./utils/api";
 import { getApiConfiguration, getGenres } from "./store/homeSlice";
 
 import Header from "./components/header/Header";
@@ -11,34 +11,32 @@ import Details from "./pages/details/Details";
 import SearchResult from "./pages/searchResult/SearchResult";
 import Explore from "./pages/explore/Explore";
 import PageNotFound from "./pages/404/PageNotFound";
+import LoginForm from "./components/loginsignup/LoginForm"; // Import the LoginForm component
+import RegistrationForm from "./components/loginsignup/RegistrationForm"; // Import the RegistrationForm component
+import './styles/styles.css';
 
 function App() {
   const dispatch = useDispatch();
-
   const { url } = useSelector((state) => state.home);
+
   console.log(url);
 
-  useEffect(() => {
-    fetchApiConfig(); //invoke method
-    genresCall();
-  }, []); //[]-dependency
+  // Function to fetch API configuration
+  const fetchApiConfig = useCallback(async () => {
+    const res = await fetchDataFromApi("/configuration");
+    console.log(res);
 
-  const fetchApiConfig = () => {
-    fetchDataFromApi("/configuration").then((res) => {
-      console.log(res);
+    const urlConfig = {
+      backdrop: res.images.secure_base_url + "original",
+      poster: res.images.secure_base_url + "original",
+      profile: res.images.secure_base_url + "original",
+    };
 
-      const url = {
-        backdrop: res.images.secure_base_url + "original",
-        poster: res.images.secure_base_url + "original",
-        profile: res.images.secure_base_url + "original",
-      };
+    dispatch(getApiConfiguration(urlConfig));
+  }, [dispatch]);
 
-      dispatch(getApiConfiguration(url));
-    });
-  };
-
-  //use promises because 2 request should send to server to get 2 responses at the same time.
-  const genresCall = async () => {
+  // Function to fetch genres
+  const genresCall = useCallback(async () => {
     let promises = [];
     let endPoints = ["tv", "movie"];
     let allGenres = {};
@@ -49,13 +47,22 @@ function App() {
 
     const data = await Promise.all(promises);
     console.log(data);
-    data.map(({ genres }) => {
-      return genres.map((item) => (allGenres[item.id] = item));
+
+    data.forEach(({ genres }) => {
+      genres.forEach((item) => {
+        allGenres[item.id] = item;
+      });
     });
 
-    //store genres in redux store
+    // Store genres in redux store
     dispatch(getGenres(allGenres));
-  };
+  }, [dispatch]);
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchApiConfig();
+    genresCall();
+  }, [fetchApiConfig, genresCall]); // Add functions as dependencies
 
   return (
     <BrowserRouter>
@@ -65,6 +72,8 @@ function App() {
         <Route path="/:mediaType/:id" element={<Details />} />
         <Route path="/search/:query" element={<SearchResult />} />
         <Route path="/explore/:mediaType" element={<Explore />} />
+        <Route path="/login" element={<LoginForm />} /> {/* Login Route */}
+        <Route path="/register" element={<RegistrationForm />} /> {/* Registration Route */}
         <Route path="*" element={<PageNotFound />} />
       </Routes>
       <Footer />
